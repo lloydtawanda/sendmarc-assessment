@@ -12,8 +12,30 @@
 */
 
 //Route::resource('tasks', 'TaskController');
+//Route::get('/tasks/{task}', 'TaskController@store');
 Route::get('/tasks', 'TaskController@index');
 Route::get('/list/tick', 'TaskController@tickTasks');
-Route::delete('/tasks/{task}', 'TaskController@destroy');
-Route::put('/tasks/{task}', 'TaskController@update');
-Route::post('/tasks/{task}', 'TaskController@store');
+//Route::delete('/tasks/{task}', 'TaskController@destroy');
+//Route::put('/new/{task}', 'TaskController@update');
+
+Route::group(['prefix' => 'tasks'], function () {
+    Route::get('/{id}', [
+        'uses' => 'TaskController@show',
+        'as'   => 'tasks.show',
+    ]);
+
+    Route::post('/', [
+        'uses' => 'TaskController@store',
+        'as'   => 'tasks.store',
+    ]);
+
+    Route::put('/{id}', [
+        'uses' => 'TaskController@update',
+        'as'   => 'tasks.update',
+    ]);
+
+    Route::delete('/{id}', [
+        'uses' => 'TaskController@destroy',
+        'as'   => 'tasks.destroy',
+    ]);
+});

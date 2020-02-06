@@ -71,44 +71,56 @@ class TaskFighter
         return new static($name, $priority, $dueIn);
     }
 
+    private function tickCompleteAssessment(){
+        if ($this->priority < 100) {
+            $this->priority = $this->priority + 1;
+
+            if($this->dueIn < 11){
+                $this->priority = $this->priority + 1;
+            }
+
+            if($this->dueIn < 6){
+                $this->priority = $this->priority + 1;
+            }
+
+        }
+
+        $this->dueIn = $this->dueIn - 1;
+
+        if ($this->dueIn < 0){
+            $this->priority = 0;
+        }
+    }
+
+    private function tickGetOlder(){
+        if ($this->priority > 0) {
+            $this->priority = $this->priority - 1;
+        }
+
+        $this->dueIn = $this->dueIn - 1;
+
+        if ($this->dueIn < 0 and $this->priority > 0){
+            $this->priority = $this->priority - 1;
+        }
+    }
+
+    private function tickSpinTheWorld(){
+        $this->priority = $this->priority;
+    }
+
     public function tick()
     {
-        if($this->name != self::GET_OLDER){
-
-            if($this->name != self::SPIN_THE_WORLD and $this->priority < 100){
-                $this->priority = $this->priority + 1;
-            }
-
-            if($this->name == self::COMPLETE_ASSESSMENT and $this->dueIn < 11 and $this->priority < 100){
-                $this->priority = $this->priority + 1;
-            }
-
-            if ($this->dueIn < 6 and $this->priority < 100) {
-                $this->priority = $this->priority + 1;
-            }
-
-        }else{
-
-            if ($this->priority > 0) {
-                $this->priority = $this->priority - 1;
-            }
-        }
-
-        if ($this->name != self::SPIN_THE_WORLD) {
-            $this->dueIn = $this->dueIn - 1;
-        }
-
-        if ($this->dueIn < 0 and $this->name != self::GET_OLDER ) {
-            if($this->name != self::COMPLETE_ASSESSMENT and $this->priority < 100 and $this->name != self::SPIN_THE_WORLD){
-                $this->priority = $this->priority + 1;
-            }else{
-                $this->priority = 0;
-            }
-        }else{
-            if ($this->priority > 0) {
-                $this->priority = $this->priority - 1;
-            }
-        }
+       switch ($this->name){
+           case self::GET_OLDER:
+               $this->tickGetOlder();
+               break;
+           case self::COMPLETE_ASSESSMENT:
+               $this->tickCompleteAssessment();
+               break;
+           default:
+               $this->tickSpinTheWorld();
+               break;
+       }
     }
 }
 

@@ -24,6 +24,7 @@ class TaskFighterTest extends TestCase
     const COMPLETE_ASSESSMENT = 'Complete Assessment';
     const COMPLETE_ASSESSMENT_PRIORITY = 50;
     const COMPLETE_ASSESSMENT_DUE_IN = 15;
+    const COMPLETE_ASSESSMENT_DUE_IN_EXPIRED = 9; //when due_in is less than 10 days priority doubles
 
 
     public function testPriorityNotNegative(){
@@ -45,18 +46,17 @@ class TaskFighterTest extends TestCase
         $this->assertLessThanOrEqual(100, $completeAssessmentPriority);
     }
 
-    public function testAfterDueDatePriorityDoubles(){
+    public function testAfterDueDateCompleteAssessmentPriorityDoubles(){
         // get original priority before due date expires
-        $getOlderTask = new TaskFighter(self::GET_OLDER, self::GET_OLDER_PRIORITY, self::GET_OLDER_DUE_IN);
-        $getOlderPriority = $getOlderTask->getPriority();
+        $completeAssessment = new TaskFighter(self::COMPLETE_ASSESSMENT, self::COMPLETE_ASSESSMENT_PRIORITY, self::COMPLETE_ASSESSMENT_DUE_IN);
+        $completeAssessmentPriority = $completeAssessment->getPriority();
 
         //test get older task with due date expired
-        $getOlderTaskExpired = new TaskFighter(self::GET_OLDER, self::GET_OLDER_PRIORITY, self::GET_OLDER_DUE_IN_EXPIRED);
-        $getOlderPriorityExpiredDueDate = $getOlderTaskExpired->getPriority();
+        $completeAssessmentExpired = new TaskFighter(self::COMPLETE_ASSESSMENT, self::COMPLETE_ASSESSMENT_PRIORITY, self::COMPLETE_ASSESSMENT_DUE_IN_EXPIRED);
+        $completeAssessmentPriorityExpiredDueDate = $completeAssessmentExpired->getPriority();
 
-        $getOlderTaskExpectedPriority = 2 * $getOlderPriority;
-
-        $this->assertGreaterThanOrEqual($getOlderTaskExpectedPriority, $getOlderPriorityExpiredDueDate);
+        $completeAssessmentPriorityExpected = 2 * $completeAssessmentPriority;
+        $this->assertLessThanOrEqual($completeAssessmentPriorityExpected, $completeAssessmentPriorityExpiredDueDate);
 
     }
 

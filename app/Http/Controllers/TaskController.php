@@ -16,8 +16,7 @@ class TaskController extends Controller
      */
     public function index()
     {
-        $tasks = \DB::table('tasks')->select('*')->get();
-        return view('welcome', array('tasks' => $tasks));
+        return view('welcome', array('tasks' => Task::all()));
     }
 
     /**
@@ -25,21 +24,23 @@ class TaskController extends Controller
      *
      * @return Response
      */
-    public function create()
-    {
-        //
-    }
+    public function create(){}
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param object $request
+     * @param Request $request
      * @return Response
      */
-    public function store($request)
+    public function store(Request $request)
     {
-        \DB::insert("insert into tasks set name = '{$request->name}', priority = '{$request->priority}', dueIn = '{$request->dueIn}'");
-        return 'created';
+        $task = new Task;
+        $task->fill([
+            'name' => $request->name,
+            'priority' => $request->priority,
+            'dueIn' => $request->dueIn]);
+        $task->save();
+        return Task::all();
     }
 
     /**
@@ -50,7 +51,7 @@ class TaskController extends Controller
      */
     public function show($id)
     {
-        //
+        return Task::find($id);
     }
 
     /**
@@ -59,33 +60,42 @@ class TaskController extends Controller
      * @param  int  $id
      * @return Response
      */
-    public function edit($id)
-    {
-        //
-    }
+    public function edit($id){}
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  object task
-     * @return Response
+     * @param Request $request
+     * @param string $id
+     * @return Task[]|\Illuminate\Database\Eloquent\Collection
      */
-    public function update($task)
+    public function update(Request $request, $id)
     {
-        \DB::update("update tasks set priority = '{$task->getPriority()}', dueIn = '{$task->getDueIn()}' where id = '{$task->id}'");
-        return \DB::table('tasks')->select('*')->get();
+        $update = Task::find($id);
+        $update->name = $request->name;
+        $update->priority = $request->priority;
+        $update->dueIn = $request->dueIn;
+        $update->save();
+        return Task::all();
     }
 
     public function tickTasks(){
-        $tasks = \DB::table('tasks')->select('*')->get();
+        $tasks = Task::all();
         foreach ($tasks as $task) {
             $taskFighter = new \App\TaskFighter($task->name, $task->priority, $task->dueIn);
             $taskFighter->tick();
-            \DB::update("update tasks set priority = '{$taskFighter->getPriority()}', dueIn = '{$taskFighter->getDueIn()}' where id = '{$task->id}'");
-        }
-        return \DB::table('tasks')->select('*')->get();
 
+            //update task
+            $update = Task::find($task->id);
+            $update->name = $taskFighter->getName();
+            $update->priority = $taskFighter->getPriority();
+            $update->dueIn = $taskFighter->getDueIn();
+            $update->save();
+        }
+
+        return Task::all();
     }
+
     /**
      * Remove the specified resource from storage.
      *
@@ -94,7 +104,7 @@ class TaskController extends Controller
      */
     public function destroy($id)
     {
-        \DB::delete("delete from tasks where id = {$id}");
-        return 'deleted';
+        Task::destroy($id);
+        return Task::all();
     }
 }

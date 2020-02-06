@@ -46,12 +46,12 @@
     </thead>
     @foreach($tasks as $task)
         <tr>
-            <td>{{$task->name}}</td>
-            <td>{{$task->priority}}</td>
-            <td>{{$task->dueIn}}</td>
+            <td id="name-{{$task->id}}">{{$task->name}}</td>
+            <td id="priority-{{$task->id}}">{{$task->priority}}</td>
+            <td id="dueIn-{{$task->id}}">{{$task->dueIn}}</td>
             <td>
                 <div class="btn-group" aria-label="Basic example">
-                    <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#editRecordModal" onclick="selectedTask.id ='{{$task->id}}';">CHANGE</button>
+                    <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#editRecordModal" onclick="editTask({{$task->id}})">CHANGE</button>
                     <button type="button" class="btn btn-danger" onclick="deleteTask({{$task->id}})">REMOVE</button>
                 </div>
             </td>
@@ -74,6 +74,7 @@
             <div class="modal-body">
 
                 <form >
+                    @method('post')
                     <div class="form-group">
                         <label for="createRecordName">Name:</label>
                         <input type="text" class="form-control" id="createRecordName">
@@ -133,37 +134,60 @@
 </div>
 
 <script type="text/javascript">
+
+
     let selectedTask = {
         taskId : -1,
         get id(){
             return this.taskId;
         },
         set id(id){
-            alert(id)
             this.taskId = id;
         }
     };
 
+    let editTask = function(id) {
+        selectedTask.id = id;
+
+        document.getElementById('editRecordName').value = document.getElementById('name-'+id).innerHTML;
+        document.getElementById('editRecordPriority').value = document.getElementById('priority-'+id).innerHTML;
+        document.getElementById('editRecordDueIn').value = document.getElementById('dueIn-'+id).innerHTML;
+
+    }
+
 let tickTasks = function () {
-    alert('Tasks details are being updated.');
-    $.get("{{ url('/list/tick') }}", function(data, status){
 
-        if(status == 'success'){
-            location.reload();
-        }else{
-            alert('Failed to update task details.');
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
+    });
 
+    $.ajax({
+        url: "{{ url('/list/tick') }}",
+        type: 'GET',
+        success: function (data, textStatus, xhr) {
+           location.reload();
+        },
+        error: function (xhr, textStatus, errorThrown) {
+            alert(errorThrown);
+        }
     });
 }
 
-let updateTask = function (taskId) {
+let updateTask = function () {
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
     $.ajax({
-        url: "{{ url('/tasks') }}",
-        type: 'POST',
+        url: "{{ url('/tasks') }}"+"/"+selectedTask.id,
+        type: 'PUT',
         dataType: 'json',
         data:  {
-            id: taskId,
+            id: selectedTask.id,
             name: $("#editRecordName").val(),
             priority: $("#editRecordPriority").val(),
             dueIn: $("#editRecordDueIn").val()
@@ -178,27 +202,42 @@ let updateTask = function (taskId) {
 }
 
 let saveTask = function () {
-    $.post("{{ url('/tasks') }}",
-        {
+
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
+    $.ajax({
+        url:  "{{ url('/tasks') }}",
+        type: 'POST',
+        data:  {
             name: $("#createRecordName").val(),
             priority: $("#createRecordPriority").val(),
             dueIn: $("#createRecordDueIn").val()
         },
-        function(data,status){
-            if(status == 'success'){
-                location.reload();
-            }else{
-                alert('Failed to create task');
-            }
-        });
+        success: function(data){
+            location.reload();
+        },
+        error: function(data) {
+            alert('Failed to create new record');
+        }
+    });
 }
 
 let deleteTask = function (taskId) {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
         $.ajax({
             url: "{{ url('/tasks') }}" + "/" + parseInt(taskId),
             type: 'DELETE',
             success: function(result) {
-                alert(JSON.stringify(result));
+                location.reload();
             },
             error: function (jqXHR, status, err) {
                 alert(err);
