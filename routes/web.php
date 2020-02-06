@@ -11,12 +11,8 @@
 |
 */
 
-//Route::resource('tasks', 'TaskController');
-//Route::get('/tasks/{task}', 'TaskController@store');
 Route::get('/tasks', 'TaskController@index');
 Route::get('/list/tick', 'TaskController@tickTasks');
-//Route::delete('/tasks/{task}', 'TaskController@destroy');
-//Route::put('/new/{task}', 'TaskController@update');
 
 Route::group(['prefix' => 'tasks'], function () {
     Route::get('/{id}', [
